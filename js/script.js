@@ -171,7 +171,11 @@ let preQuestions =
             ]
         }];
 
+//Listing 1
 let next = document.querySelector('.next');
+let previous = document.querySelector('.previous');
+
+let indexQuestion = document.querySelector('#index');
 
 let question = document.querySelector('.question');
 let answers = document.querySelectorAll('.list-group-item');
@@ -180,12 +184,78 @@ let pointsElem = document.querySelector('.score');
 let restart = document.querySelector('.restart');
 let index = 0;
 let points = 0;
+let answered = [];
 
+for (let i = 0; i < preQuestions.length; i++){
+    answered[i]= false;
+}
 for (let i = 0; i < answers.length; i++) {
     answers[i].addEventListener('click', doAction);
 }
+//Listing 2
+//Listing 3
+function setQuestion(index) {
 
+    //clearClass();
+    question.innerHTML = preQuestions[index].question;
+    indexQuestion.innerHTML = index + 1;
+    answers[0].innerHTML = preQuestions[index].answers[0];
+    answers[1].innerHTML = preQuestions[index].answers[1];
+    answers[2].innerHTML = preQuestions[index].answers[2];
+    answers[3].innerHTML = preQuestions[index].answers[3];
+
+    if (preQuestions[index].answers.length === 2) {
+        answers[2].style.display = 'none';
+        answers[3].style.display = 'none';
+    } else {
+        answers[2].style.display = 'block';
+        answers[3].style.display = 'block';
+    }
+
+    for (let i = 0; i < answers.length; i++) {
+        answers[i].classList.remove('correct');
+        answers[i].classList.remove('incorrect');
+    }
+
+    console.log(answered[index])
+    if(!answered[index] === false) {
+        disableAnswers();
+        for (let i = 0; i < answers.length; i++) {
+            if(answered[index] === answers[i].textContent){
+                if (preQuestions[index].correct_answer === answered[index]) {
+                    answers[i].classList.add('correct');
+                } else {
+                    answers[i].classList.add('incorrect');
+                }
+            }
+
+        }
+    } else {
+        activateAnswers();
+    }
+
+
+
+
+}
+//Listing 4
+next.addEventListener('click', function () {
+    if( index < preQuestions.length ){
+        index++;
+        setQuestion(index);
+    }
+});
+
+previous.addEventListener('click', function () {
+    if( index > 0 ){
+        index--;
+        setQuestion(index);
+    }
+});
+
+//Listing 5
 function doAction(event) {
+    answered[index] = event.target.innerHTML;
     //event.target - Zwraca referencję do elementu, do którego zdarzenie zostało pierwotnie wysłane.
     if (event.target.innerHTML === preQuestions[index].correct_answer) {
         points++;
@@ -196,8 +266,28 @@ function doAction(event) {
         markInCorrect(event.target);
     }
     disableAnswers();
+
 }
 
+//Listing 6
+function activateAnswers() {
+    for (let i = 0; i < answers.length; i++) {
+        answers[i].addEventListener('click', doAction);
+    }
+}
+
+//Listing 7
+function markCorrect(elem) {
+    elem.classList.add('correct');
+}
+function markInCorrect(elem) {
+    elem.classList.add('incorrect');
+}
+function  disableAnswers() {
+    for (let i = 0; i < answers.length; i++) {
+        answers[i].removeEventListener('click', doAction);
+    }
+}
 
 
 restart.addEventListener('click', function (event) {
@@ -212,6 +302,9 @@ restart.addEventListener('click', function (event) {
     list.style.display = 'block';
     results.style.display = 'none';
 });
+
+setQuestion(index);
+
 
 
 let button = document.querySelector('.scroll');
