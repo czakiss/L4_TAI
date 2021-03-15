@@ -170,8 +170,17 @@ let preQuestions =
                 "Video Card"
             ]
         }];
+preQuestions = [];
 
-//Listing 1
+const promiseOfQuestionsData = fetch("https://quiztai.herokuapp.com/api/quiz").then(r => r.json()).then(questionsData => {
+    return questionsData;
+});
+
+window.onload = async () => {
+    preQuestions = await promiseOfQuestionsData;
+    setQuestion(index);
+};
+
 let next = document.querySelector('.next');
 let previous = document.querySelector('.previous');
 
@@ -185,6 +194,13 @@ let restart = document.querySelector('.restart');
 let index = 0;
 let points = 0;
 let answered = [];
+
+let list = document.querySelector('.list');
+let results = document.querySelector('.results');
+let userScorePoint = document.querySelector('.userScorePoint');
+let average = document.querySelector('.average');
+
+let data;
 
 for (let i = 0; i < preQuestions.length; i++){
     answered[i]= false;
@@ -233,18 +249,53 @@ function setQuestion(index) {
     } else {
         activateAnswers();
     }
-
-
-
-
 }
+
 //Listing 4
 next.addEventListener('click', function () {
-    if( index < preQuestions.length ){
-        index++;
+    index++;
+    if (index >= preQuestions.length) {
+        list.style.display = 'none';
+        results.style.display = 'block';
+        saveData();
+        userScorePoint.innerHTML = points;
+        average.innerHTML = data.avg;
+
+    } else {
         setQuestion(index);
     }
 });
+
+function deleteData(){
+    localStorage.removeItem("key");
+}
+
+function loadData(){
+    data = JSON.parse(localStorage.getItem("key"));
+    if(data==null){
+        data = {
+            results:[],
+            avg:0
+        }
+    }
+}
+
+function saveData(){
+    loadData();
+    data.results.push(points)
+    let tempAvg = 0;
+    for(let i = 0; i<data.results.length; i++){
+        tempAvg += data.results[i];
+    }
+    tempAvg = tempAvg/data.results.length
+
+    let tempData = {
+        results:data.results,
+        avg:tempAvg
+    };
+    data = tempData;
+    localStorage.setItem("key", JSON.stringify(data));
+}
 
 previous.addEventListener('click', function () {
     if( index > 0 ){
@@ -275,6 +326,11 @@ function activateAnswers() {
         answers[i].addEventListener('click', doAction);
     }
 }
+function  disableAnswers() {
+    for (let i = 0; i < answers.length; i++) {
+        answers[i].removeEventListener('click', doAction);
+    }
+}
 
 //Listing 7
 function markCorrect(elem) {
@@ -283,18 +339,12 @@ function markCorrect(elem) {
 function markInCorrect(elem) {
     elem.classList.add('incorrect');
 }
-function  disableAnswers() {
-    for (let i = 0; i < answers.length; i++) {
-        answers[i].removeEventListener('click', doAction);
-    }
-}
-
 
 restart.addEventListener('click', function (event) {
     event.preventDefault();
-
     index = 0;
     points = 0;
+    answered = [];
     let userScorePoint = document.querySelector('.score');
     userScorePoint.innerHTML = points;
     setQuestion(index);
@@ -302,10 +352,6 @@ restart.addEventListener('click', function (event) {
     list.style.display = 'block';
     results.style.display = 'none';
 });
-
-setQuestion(index);
-
-
 
 let button = document.querySelector('.scroll');
 button.addEventListener('click', goToTop);
@@ -322,3 +368,4 @@ function showTopButton() {
     }
 }
 window.onscroll = function() {showTopButton()};
+
